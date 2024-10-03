@@ -1,0 +1,29 @@
+#Codes for prepare TCR phenotypes (CDR3)
+#Conducted by K. Ishigaki
+
+ODIR=freq/productive/cdr3/tohoku_v2 #output directory (change here as needed)
+mkdir -p $ODIR
+
+dd=/home/imgishi/data/TCR/Kawabe_et_al/data_202210 #the path to the TCR data files
+names=$( ls $dd | grep gz | sed -e "s/.tsv.gz//g" )
+
+#STEP1: extract key data
+for name in $names ;do
+   
+   zcat $dd/$name.tsv.gz |
+   awk 'BEGIN{OFS="\t";FS="\t"}{
+      productive_frequency=$60;
+      amino_acid=$54;
+      v_resolved=$97;
+      j_resolved=$99;
+      if( length(productive_frequency) != 0 ){
+         print  productive_frequency, amino_acid, v_resolved, j_resolved
+      }
+   }' > $ODIR/$name.productive.dat
+   
+   gzip -f $ODIR/$name.productive.dat
+   
+done
+
+#STEP2: Jobs using R script (submitted in a separate jupyter notebook: 02_CDR3_phenotype-step2.ipynb)
+

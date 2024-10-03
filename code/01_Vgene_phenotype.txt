@@ -1,0 +1,32 @@
+#Codes for prepare TCR phenotypes (V gene)
+#Conducted by K. Ishigaki
+
+ODIR=freq/productive/vgene/tohoku_v2 #output directory (change here as needed)
+mkdir -p $ODIR
+
+dd=/home/imgishi/data/TCR/Kawabe_et_al/data_202210 #the path to the TCR data files
+names=$( ls $dd | grep gz | sed -e "s/.tsv.gz//g" )
+for name in $names ;do
+   echo $name ...
+   
+   zcat $dd/$name.tsv.gz |
+   awk 'BEGIN{OFS="\t";FS="\t"}{
+      productive_frequency=$60;
+      amino_acid=$54;
+      v_resolved=$97;
+      j_resolved=$99;
+      if( length(productive_frequency) != 0 ){
+         print  productive_frequency, amino_acid, v_resolved, j_resolved
+      }
+   }' |
+   sed -e "1d" |
+   cut -f 3 |
+   awk '{if( length($1) > 0 ){ print } }' |
+   sort |
+   uniq -c |
+   awk '{print $2,$1}' > $ODIR/$name.freq
+done
+
+gzip -f $ODIR/*
+
+
